@@ -3,6 +3,7 @@ use crate::component::*;
 use crate::entity::EntityBuilder;
 use anymap::AnyMap;
 use slotmap::SlotMap;
+use std::cell::{RefCell, Ref, RefMut};
 
 pub struct World {
     // has ComponentStorage<T>
@@ -75,7 +76,7 @@ impl World {
         self.components.remove::<ComponentStorage<T>>();
     }
 
-    pub fn get_component<T>(&self, key: EntityId) -> Option<&T>
+    pub fn get_component<T>(&self, key: EntityId) -> Option<Ref<T>>
     where
         T: Component + 'static,
     {
@@ -84,7 +85,7 @@ impl World {
         storage.get(key)
     }
 
-    pub fn get_component_mut<T>(&mut self, key: EntityId) -> Option<&mut T>
+    pub fn get_component_mut<T>(&mut self, key: EntityId) -> Option<RefMut<T>>
     where
         T: Component + 'static,
     {
@@ -93,29 +94,23 @@ impl World {
         storage.get_mut(key)
     }
 
-    pub fn query<T, U>(&self) -> impl Iterator<Item = (&T, &U)>
+        
+    pub fn with_entity<T, R>(&self, key: EntityId, f: impl FnOnce(&T) -> R) -> Option<R>
     where
         T: Component + 'static,
-        U: Component + 'static,
     {
-        self.ids.keys().filter_map(|key| {
-            let t = self.get_component::<T>(key);
-            let u = self.get_component::<U>(key);
+        let storage = self.storage::<T>().unwrap();
 
-            Some((t?, u?))
-        })
+        storage.with_entity(key, f)
     }
 
-    pub fn query_mut<T, U>(&mut self) -> impl Iterator<Item = (&mut T, &mut U)>
+    pub fn with_entity_mut<T, F, R>(&mut self, key: EntityId, f: F) -> Option<R>
     where
         T: Component + 'static,
-        U: Component + 'static
+        F: FnOnce(&mut T) -> R
     {
-        self.ids.keys().filter_map(|key| {
-            let t = self.get_component_mut::<T>(key);
-            let u = self.get_component_mut::<U>(key);
+        let storage = self.storage_mut::<T>().unwrap();
 
-            Some((t?, u?))
-        })
+        storage.with_entity_mut(key, f)
     }
 }
