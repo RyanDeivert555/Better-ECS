@@ -10,13 +10,6 @@ pub struct World {
     ids: SlotMap<EntityId, ()>,
 }
 
-fn tuple_to_option<T, U>(tup: (Option<T>, Option<U>)) -> Option<(T, U)> {
-    match tup {
-        (Some(t), Some(u)) => Some((t, u)),
-        _ => None,
-    }
-}
-
 impl World {
     pub fn new() -> Self {
         Self {
@@ -109,7 +102,7 @@ impl World {
             let t = self.get_component::<T>(key);
             let u = self.get_component::<U>(key);
 
-            tuple_to_option((t, u))
+            Some((t?, u?))
         })
     }
 
@@ -122,7 +115,7 @@ impl World {
             let t = self.get_component_mut::<T>(key);
             let u = self.get_component_mut::<U>(key);
 
-            tuple_to_option((t, u))
+            Some((t?, u?))
         })
     }
 }
