@@ -1,4 +1,5 @@
-use slotmap::*;
+#![allow(unused)]
+use slotmap::{SecondaryMap, new_key_type};
 
 pub trait Component {}
 

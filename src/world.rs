@@ -1,12 +1,20 @@
+#![allow(unused)]
 use crate::component::*;
-use slotmap::SlotMap;
-use anymap::AnyMap;
 use crate::entity::EntityBuilder;
+use anymap::AnyMap;
+use slotmap::SlotMap;
 
 pub struct World {
     // has ComponentStorage<T>
     components: AnyMap,
     ids: SlotMap<EntityId, ()>,
+}
+
+fn tuple_to_option<T, U>(tup: (Option<T>, Option<U>)) -> Option<(T, U)> {
+    match tup {
+        (Some(t), Some(u)) => Some((t, u)),
+        _ => None,
+    }
 }
 
 impl World {
@@ -43,14 +51,14 @@ impl World {
 
     pub fn storage<T>(&self) -> Option<&ComponentStorage<T>>
     where
-        T: Component + 'static
+        T: Component + 'static,
     {
         self.components.get::<ComponentStorage<T>>()
     }
 
     pub fn storage_mut<T>(&mut self) -> Option<&mut ComponentStorage<T>>
     where
-        T: Component + 'static
+        T: Component + 'static,
     {
         self.components.get_mut::<ComponentStorage<T>>()
     }
@@ -59,7 +67,7 @@ impl World {
     where
         T: Component + 'static,
     {
-        assert!(self.contains_storage::<T>());
+        assert!(self.contains_storage::<T>(), "Component is not registered");
         let storage = self.storage_mut::<T>().unwrap();
         storage.insert(key, entry);
     }
@@ -71,14 +79,14 @@ impl World {
         assert!(self.contains_storage::<T>());
         let storage = self.storage_mut::<T>().unwrap();
         storage.remove(key);
+        self.components.remove::<ComponentStorage<T>>();
     }
 
     pub fn get_component<T>(&self, key: EntityId) -> Option<&T>
     where
         T: Component + 'static,
     {
-        assert!(self.contains_storage::<T>());
-        let storage = self.storage::<T>().unwrap();
+        let storage = self.storage::<T>()?;
 
         storage.get(key)
     }
@@ -87,9 +95,34 @@ impl World {
     where
         T: Component + 'static,
     {
-        assert!(self.contains_storage::<T>());
-        let storage = self.storage_mut::<T>().unwrap();
+        let storage = self.storage_mut::<T>()?;
 
         storage.get_mut(key)
+    }
+
+    pub fn query<T, U>(&self) -> impl Iterator<Item = (&T, &U)>
+    where
+        T: Component + 'static,
+        U: Component + 'static,
+    {
+        self.ids.keys().filter_map(|key| {
+            let t = self.get_component::<T>(key);
+            let u = self.get_component::<U>(key);
+
+            tuple_to_option((t, u))
+        })
+    }
+
+    pub fn query_mut<T, U>(&mut self) -> impl Iterator<Item = (&mut T, &mut U)>
+    where
+        T: Component + 'static,
+        U: Component + 'static
+    {
+        self.ids.keys().filter_map(|key| {
+            let t = self.get_component_mut::<T>(key);
+            let u = self.get_component_mut::<U>(key);
+
+            tuple_to_option((t, u))
+        })
     }
 }

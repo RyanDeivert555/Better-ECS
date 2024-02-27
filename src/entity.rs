@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::component::*;
 use crate::world::World;
 
@@ -8,15 +9,12 @@ pub struct EntityBuilder<'a> {
 
 impl<'a> EntityBuilder<'a> {
     pub fn new(id: EntityId, world: &'a mut World) -> Self {
-        Self {
-            id,
-            world,
-        }
+        Self { id, world }
     }
 
     pub fn with<T>(&mut self, entry: T) -> &mut Self
     where
-        T: Component + 'static
+        T: Component + 'static,
     {
         self.world.add_component(self.id, entry);
 
