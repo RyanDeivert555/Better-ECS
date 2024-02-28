@@ -31,5 +31,7 @@ mod tests {
 
         let value1 = world.get_component_mut::<f32>(id).unwrap();
         let value2 = world.get_component_mut::<(f32, f32)>(id).unwrap();
+
+        *value1 = 1.0;
     }
 }

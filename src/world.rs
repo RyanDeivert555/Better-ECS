@@ -76,7 +76,7 @@ impl World {
         self.components.remove::<ComponentStorage<T>>();
     }
 
-    pub fn get_component<T>(&self, key: EntityId) -> Option<Ref<T>>
+    pub fn get_component<T>(&self, key: EntityId) -> Option<&T>
     where
         T: Component + 'static,
     {
@@ -85,32 +85,12 @@ impl World {
         storage.get(key)
     }
 
-    pub fn get_component_mut<T>(&mut self, key: EntityId) -> Option<RefMut<T>>
+    pub fn get_component_mut<T>(&mut self, key: EntityId) -> Option<&mut T>
     where
         T: Component + 'static,
     {
         let storage = self.storage_mut::<T>()?;
 
         storage.get_mut(key)
-    }
-
-        
-    pub fn with_entity<T, R>(&self, key: EntityId, f: impl FnOnce(&T) -> R) -> Option<R>
-    where
-        T: Component + 'static,
-    {
-        let storage = self.storage::<T>().unwrap();
-
-        storage.with_entity(key, f)
-    }
-
-    pub fn with_entity_mut<T, F, R>(&mut self, key: EntityId, f: F) -> Option<R>
-    where
-        T: Component + 'static,
-        F: FnOnce(&mut T) -> R
-    {
-        let storage = self.storage_mut::<T>().unwrap();
-
-        storage.with_entity_mut(key, f)
     }
 }
