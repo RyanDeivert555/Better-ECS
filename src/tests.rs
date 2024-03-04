@@ -24,6 +24,9 @@ mod tests {
         assert_eq!((110.0, 100.0), *world.get_component::<(f32, f32)>(e1).unwrap());
         assert_eq!(20.0, *world.get_component::<f32>(e2).unwrap());
         assert_eq!(None, world.get_component::<(f32, f32)>(e2).as_deref());
+
+        world.remove_component::<f32>(e1);
+        assert_eq!(None, world.get_component::<f32>(e1).as_deref());
     }
 
     #[test]
