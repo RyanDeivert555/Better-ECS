@@ -27,6 +27,9 @@ mod tests {
 
         world.remove_component::<f32>(e1);
         assert_eq!(None, world.get_component::<f32>(e1).as_deref());
+
+        world.remove_entity(e1);
+        assert_eq!(None, world.get_component::<(f32, f32)>(e1).as_deref());
     }
 
     #[test]
@@ -46,5 +49,20 @@ mod tests {
 
         assert_eq!(*value1, 1.0);
         assert_eq!(*value2, (1.0, 0.0));
+    }
+
+    #[test]
+    #[should_panic]
+    fn mut_borrow_error() {
+        let mut world = World::new();
+
+        world.register::<f32>();
+
+        let e = world.new_entity().with(0.0).build();
+
+        let _b1 = world.get_component::<f32>(e).unwrap();
+        let mut b2 = world.get_component_mut::<f32>(e).unwrap();
+
+        *b2 += 1.0;
     }
 }

@@ -34,6 +34,10 @@ where
         self.components.remove(key)
     }
 
+    pub fn contains(&self, key: EntityId) -> bool {
+        self.components.contains_key(key)
+    }
+
     pub fn get(&self, key: EntityId) -> Option<&T> {
         self.components.get(key)
     }

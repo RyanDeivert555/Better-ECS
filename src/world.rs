@@ -4,7 +4,6 @@ use crate::entity::EntityBuilder;
 use slotmap::SlotMap;
 use std::{
     any::{Any, TypeId},
-    borrow::{Borrow, BorrowMut},
     cell::{Ref, RefCell, RefMut},
     collections::HashMap,
 };
@@ -33,6 +32,12 @@ impl World {
 
     pub fn remove_entity(&mut self, key: EntityId) {
         self.ids.remove(key);
+        /*
+        TODO: how do we remove components when we delete an entity?
+        for storage in self.components.values() {
+            storage.borrow_mut().downcast_mut::<ComponentStorage<_>>().unwrap().remove(key);
+        }
+        */
     }
 
     pub fn register<T>(&mut self)
@@ -77,13 +82,23 @@ impl World {
         ))
     }
 
+    pub fn contains_component<T>(&self, key: EntityId) -> bool
+    where
+        T: Component + 'static,
+    {
+        self.storage::<T>()
+            .map(|inner| inner.contains(key))
+            .is_some()
+            && self.ids.contains_key(key)
+    }
+
     pub fn add_component<T>(&mut self, key: EntityId, entry: T)
     where
         T: Component + 'static,
     {
         assert!(self.contains_storage::<T>(), "Component is not registered");
         let mut storage = self.storage_mut::<T>().unwrap();
-        storage.borrow_mut().insert(key, entry);
+        storage.insert(key, entry);
     }
 
     pub fn remove_component<T>(&mut self, key: EntityId)
@@ -104,13 +119,21 @@ impl World {
     where
         T: Component + 'static,
     {
-        Ref::filter_map(self.storage::<T>()?, |inner| inner.get(key)).ok()
+        if self.contains_component::<T>(key) {
+            Ref::filter_map(self.storage::<T>()?, |inner| inner.get(key)).ok()
+        } else {
+            None
+        }
     }
 
     pub fn get_component_mut<T>(&self, key: EntityId) -> Option<RefMut<T>>
     where
         T: Component + 'static,
     {
-        RefMut::filter_map(self.storage_mut::<T>()?, |inner| inner.get_mut(key)).ok()
+        if self.contains_component::<T>(key) {
+            RefMut::filter_map(self.storage_mut::<T>()?, |inner| inner.get_mut(key)).ok()
+        } else {
+            None
+        }
     }
 }
