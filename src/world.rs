@@ -115,7 +115,7 @@ impl World {
         self.components.remove(&id);
     }
 
-    pub fn get_component<T>(&self, key: EntityId) -> Option<Ref<T>>
+    pub fn get_component<T>(&self, key: EntityId) -> Option<Ref<'_, T>>
     where
         T: Component + 'static,
     {
@@ -126,7 +126,7 @@ impl World {
         }
     }
 
-    pub fn get_component_mut<T>(&self, key: EntityId) -> Option<RefMut<T>>
+    pub fn get_component_mut<T>(&self, key: EntityId) -> Option<RefMut<'_, T>>
     where
         T: Component + 'static,
     {
