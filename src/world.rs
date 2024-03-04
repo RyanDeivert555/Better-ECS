@@ -1,20 +1,26 @@
 #![allow(unused)]
 use crate::component::*;
 use crate::entity::EntityBuilder;
-use anymap::AnyMap;
 use slotmap::SlotMap;
-use std::cell::{RefCell, Ref, RefMut};
+use std::{
+    any::{Any, TypeId},
+    borrow::{Borrow, BorrowMut},
+    cell::{Ref, RefCell, RefMut},
+    collections::HashMap,
+};
+
+type ComponentMap = HashMap<TypeId, RefCell<Box<dyn Any>>>;
 
 pub struct World {
     // has ComponentStorage<T>
-    components: AnyMap,
+    components: ComponentMap,
     ids: SlotMap<EntityId, ()>,
 }
 
 impl World {
     pub fn new() -> Self {
         Self {
-            components: AnyMap::new(),
+            components: HashMap::new(),
             ids: SlotMap::with_key(),
         }
     }
@@ -33,28 +39,42 @@ impl World {
     where
         T: Component + 'static,
     {
-        self.components.insert(ComponentStorage::<T>::new());
+        let id = TypeId::of::<ComponentStorage<T>>();
+
+        self.components
+            .insert(id, RefCell::new(Box::new(ComponentStorage::<T>::new())));
     }
 
     pub fn contains_storage<T>(&self) -> bool
     where
         T: Component + 'static,
     {
-        self.components.contains::<ComponentStorage<T>>()
+        let id = TypeId::of::<ComponentStorage<T>>();
+
+        self.components.contains_key(&id)
     }
 
-    pub fn storage<T>(&self) -> Option<&ComponentStorage<T>>
+    pub fn storage<T>(&self) -> Option<Ref<'_, ComponentStorage<T>>>
     where
         T: Component + 'static,
     {
-        self.components.get::<ComponentStorage<T>>()
+        let id = TypeId::of::<ComponentStorage<T>>();
+
+        Some(Ref::map(self.components.get(&id)?.borrow(), |inner| {
+            inner.downcast_ref::<ComponentStorage<T>>().unwrap()
+        }))
     }
 
-    pub fn storage_mut<T>(&mut self) -> Option<&mut ComponentStorage<T>>
+    pub fn storage_mut<T>(&self) -> Option<RefMut<'_, ComponentStorage<T>>>
     where
         T: Component + 'static,
     {
-        self.components.get_mut::<ComponentStorage<T>>()
+        let id = TypeId::of::<ComponentStorage<T>>();
+
+        Some(RefMut::map(
+            self.components.get(&id)?.borrow_mut(),
+            |inner| inner.downcast_mut::<ComponentStorage<T>>().unwrap(),
+        ))
     }
 
     pub fn add_component<T>(&mut self, key: EntityId, entry: T)
@@ -62,8 +82,8 @@ impl World {
         T: Component + 'static,
     {
         assert!(self.contains_storage::<T>(), "Component is not registered");
-        let storage = self.storage_mut::<T>().unwrap();
-        storage.insert(key, entry);
+        let mut storage = self.storage_mut::<T>().unwrap();
+        storage.borrow_mut().insert(key, entry);
     }
 
     pub fn remove_component<T>(&mut self, key: EntityId)
@@ -71,26 +91,26 @@ impl World {
         T: Component + 'static,
     {
         assert!(self.contains_storage::<T>());
-        let storage = self.storage_mut::<T>().unwrap();
-        storage.remove(key);
-        self.components.remove::<ComponentStorage<T>>();
+        {
+            let mut storage = self.storage_mut::<T>().unwrap();
+            storage.remove(key);
+        }
+        let id = TypeId::of::<ComponentStorage<T>>();
+
+        self.components.remove(&id);
     }
 
-    pub fn get_component<T>(&self, key: EntityId) -> Option<&T>
+    pub fn get_component<T>(&self, key: EntityId) -> Option<Ref<T>>
     where
         T: Component + 'static,
     {
-        let storage = self.storage::<T>()?;
-
-        storage.get(key)
+        Ref::filter_map(self.storage::<T>()?, |inner| inner.get(key)).ok()
     }
 
-    pub fn get_component_mut<T>(&mut self, key: EntityId) -> Option<&mut T>
+    pub fn get_component_mut<T>(&self, key: EntityId) -> Option<RefMut<T>>
     where
         T: Component + 'static,
     {
-        let storage = self.storage_mut::<T>()?;
-
-        storage.get_mut(key)
+        RefMut::filter_map(self.storage_mut::<T>()?, |inner| inner.get_mut(key)).ok()
     }
 }
