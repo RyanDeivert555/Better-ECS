@@ -1,7 +1,8 @@
 #![allow(unused)]
-use crate::component::*;
 use crate::entity::EntityBuilder;
+use crate::{component::*, query::Query};
 use slotmap::SlotMap;
+use std::process::Output;
 use std::{
     any::{Any, TypeId},
     cell::{Ref, RefCell, RefMut},
@@ -135,5 +136,37 @@ impl World {
         } else {
             None
         }
+    }
+
+    pub fn get_components<Q>(&self, key: EntityId) -> Option<Q::Output<'_>>
+    where
+        Q: Query,
+    {
+        Q::query(self, key)
+    }
+
+    pub fn get_components_mut<Q>(&self, key: EntityId) -> Option<Q::OutputMut<'_>>
+    where
+        Q: Query,
+    {
+        Q::query_mut(self, key)
+    }
+
+    pub fn query<Q>(&self) -> impl Iterator<Item = <Q>::Output<'_>>
+    where
+        Q: Query,
+    {
+        self.ids
+            .keys()
+            .filter_map(|key| self.get_components::<Q>(key))
+    }
+
+    pub fn query_mut<Q>(&self) -> impl Iterator<Item = <Q>::OutputMut<'_>>
+    where
+        Q: Query,
+    {
+        self.ids
+            .keys()
+            .filter_map(|key| self.get_components_mut::<Q>(key))
     }
 }
