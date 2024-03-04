@@ -3,6 +3,15 @@ use slotmap::{new_key_type, SecondaryMap};
 
 pub trait Component {}
 
+#[macro_export]
+macro_rules! make_component {
+    { $(#[$outer:meta])* $vis:vis struct $name:ident $($rest:tt)* } => {
+        $(#[$outer])*
+        $vis struct $name $($rest)*
+        impl $crate::component::Component for $name {}
+    };
+}
+
 new_key_type! {
     pub struct EntityId;
 }

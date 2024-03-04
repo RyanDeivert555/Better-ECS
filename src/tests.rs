@@ -1,13 +1,14 @@
-use crate::component::Component;
+use crate::{make_component, component::Component};
+
 impl Component for i32 {}
 
-#[derive(Debug, PartialEq)]
-struct Position {
-    x: i32,
-    y: i32,
+make_component! {
+    #[derive(Debug, PartialEq)]
+    struct Position {
+        x: i32,
+        y: i32,
+    }
 }
-
-impl Component for Position {}
 
 #[cfg(test)]
 mod tests {
@@ -140,10 +141,15 @@ mod tests {
         for (i, (num, pos)) in q2.enumerate() {
             let expected_pos = {
                 if *num % 2 == 0 {
-                    Position { x: i as i32 + 1, y: i as i32 - 1}
-                }
-                else {
-                    Position { x: i as i32, y: i as i32}
+                    Position {
+                        x: i as i32 + 1,
+                        y: i as i32 - 1,
+                    }
+                } else {
+                    Position {
+                        x: i as i32,
+                        y: i as i32,
+                    }
                 }
             };
             assert_eq!(i as i32, *num);
