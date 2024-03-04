@@ -1,5 +1,5 @@
 mod component;
-mod entity;
+mod entity_builder;
 mod query;
 mod tests;
 mod world;
