@@ -2,7 +2,6 @@
 use crate::entity_builder::EntityBuilder;
 use crate::{component::*, query::Query};
 use slotmap::SlotMap;
-use std::process::Output;
 use std::{
     any::{Any, TypeId},
     cell::{Ref, RefCell, RefMut},
