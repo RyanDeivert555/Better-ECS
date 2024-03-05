@@ -5,6 +5,8 @@ use crate::{
     world::World,
 };
 
+
+// TODO: add QueryWithoutTrait
 pub trait Query {
     type Output<'lt>;
     type OutputMut<'lt>;
