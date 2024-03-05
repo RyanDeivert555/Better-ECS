@@ -110,7 +110,7 @@ impl World {
         T: Component + 'static,
     {
         let id = TypeId::of::<T>();
-        let previous_value = self.resources.insert(id, RefCell::new(Box::new(entry))) ;
+        let previous_value = self.resources.insert(id, RefCell::new(Box::new(entry)));
 
         previous_value.map(|inner| inner.into_inner().downcast::<T>().unwrap())
     }
@@ -135,7 +135,9 @@ impl World {
     {
         let id = TypeId::of::<T>();
 
-        Some(Ref::map(self.resources.get(&id)?.borrow(), |inner| inner.downcast_ref::<T>().unwrap()))
+        Some(Ref::map(self.resources.get(&id)?.borrow(), |inner| {
+            inner.downcast_ref::<T>().unwrap()
+        }))
     }
 
     pub fn get_resource_mut<T>(&self) -> Option<RefMut<'_, T>>
@@ -144,7 +146,10 @@ impl World {
     {
         let id = TypeId::of::<T>();
 
-        Some(RefMut::map(self.resources.get(&id)?.borrow_mut(), |inner| inner.downcast_mut::<T>().unwrap()))
+        Some(RefMut::map(
+            self.resources.get(&id)?.borrow_mut(),
+            |inner| inner.downcast_mut::<T>().unwrap(),
+        ))
     }
 
     pub fn get_component<T>(&self, key: EntityId) -> Option<Ref<'_, T>>
