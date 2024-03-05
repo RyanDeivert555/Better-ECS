@@ -105,14 +105,14 @@ impl World {
         storage.insert(key, entry);
     }
 
-    pub fn add_resource<T>(&mut self, entry: T) -> Option<Box<T>>
+    pub fn add_resource<T>(&mut self, entry: T) -> Option<T>
     where
         T: Component + 'static,
     {
         let id = TypeId::of::<T>();
         let previous_value = self.resources.insert(id, RefCell::new(Box::new(entry)));
 
-        previous_value.map(|inner| inner.into_inner().downcast::<T>().unwrap())
+        previous_value.map(|inner| *inner.into_inner().downcast::<T>().unwrap())
     }
 
     pub fn remove_component<T>(&mut self, key: EntityId)

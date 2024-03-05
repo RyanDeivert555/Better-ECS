@@ -171,7 +171,7 @@ mod tests {
         }
 
         assert_eq!(Some(&1), world.get_resource::<i32>().as_deref());
-        assert_eq!(Some(Box::new(1)), world.add_resource(10));
+        assert_eq!(Some(1), world.add_resource(10));
         assert_eq!(None, world.get_resource::<Position>().as_deref());
     }
 }
