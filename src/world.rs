@@ -112,7 +112,7 @@ impl World {
         let id = TypeId::of::<T>();
         let previous_value = self.resources.insert(id, RefCell::new(Box::new(entry))) ;
 
-        previous_value.and_then(|inner| Some(inner.into_inner().downcast::<T>().unwrap()))
+        previous_value.map(|inner| inner.into_inner().downcast::<T>().unwrap())
     }
 
     pub fn remove_component<T>(&mut self, key: EntityId)
