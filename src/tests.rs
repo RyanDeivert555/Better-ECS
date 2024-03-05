@@ -80,6 +80,7 @@ mod tests {
 
         let e = world.new_entity().with(0).build();
 
+        // borrow and mut borrow of same component
         let _b1 = world.get_component::<i32>(e).unwrap();
         let mut b2 = world.get_component_mut::<i32>(e).unwrap();
 
@@ -156,5 +157,21 @@ mod tests {
             assert_eq!(i as i32, *num);
             assert_eq!(expected_pos, *pos);
         }
+    }
+
+    #[test]
+    fn resources() {
+        let mut world = World::new();
+
+        assert_eq!(None, world.add_resource(0));
+
+        {
+            let mut counter = world.get_resource_mut::<i32>().unwrap();
+            *counter += 1;
+        }
+
+        assert_eq!(Some(&1), world.get_resource::<i32>().as_deref());
+        assert_eq!(Some(Box::new(1)), world.add_resource(10));
+        assert_eq!(None, world.get_resource::<Position>().as_deref());
     }
 }

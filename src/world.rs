@@ -13,6 +13,8 @@ type ComponentMap = HashMap<TypeId, RefCell<Box<dyn Any>>>;
 pub struct World {
     // has ComponentStorage<T>
     components: ComponentMap,
+    // has resources T
+    resources: ComponentMap,
     // TODO: test whether SlotMap or HopSlotMap is faster
     ids: HopSlotMap<EntityId, ()>,
 }
@@ -21,6 +23,7 @@ impl World {
     pub fn new() -> Self {
         Self {
             components: HashMap::new(),
+            resources: HashMap::new(),
             ids: HopSlotMap::with_key(),
         }
     }
@@ -102,6 +105,16 @@ impl World {
         storage.insert(key, entry);
     }
 
+    pub fn add_resource<T>(&mut self, entry: T) -> Option<Box<T>>
+    where
+        T: Component + 'static,
+    {
+        let id = TypeId::of::<T>();
+        let previous_value = self.resources.insert(id, RefCell::new(Box::new(entry))) ;
+
+        previous_value.and_then(|inner| Some(inner.into_inner().downcast::<T>().unwrap()))
+    }
+
     pub fn remove_component<T>(&mut self, key: EntityId)
     where
         T: Component + 'static,
@@ -114,6 +127,24 @@ impl World {
         let id = TypeId::of::<ComponentStorage<T>>();
 
         self.components.remove(&id);
+    }
+
+    pub fn get_resource<T>(&self) -> Option<Ref<'_, T>>
+    where
+        T: Component + 'static,
+    {
+        let id = TypeId::of::<T>();
+
+        Some(Ref::map(self.resources.get(&id)?.borrow(), |inner| inner.downcast_ref::<T>().unwrap()))
+    }
+
+    pub fn get_resource_mut<T>(&self) -> Option<RefMut<'_, T>>
+    where
+        T: Component + 'static,
+    {
+        let id = TypeId::of::<T>();
+
+        Some(RefMut::map(self.resources.get(&id)?.borrow_mut(), |inner| inner.downcast_mut::<T>().unwrap()))
     }
 
     pub fn get_component<T>(&self, key: EntityId) -> Option<Ref<'_, T>>
