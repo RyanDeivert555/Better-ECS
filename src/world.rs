@@ -1,7 +1,7 @@
 #![allow(unused)]
 use crate::entity_builder::EntityBuilder;
 use crate::{component::*, query::Query};
-use slotmap::SlotMap;
+use slotmap::HopSlotMap;
 use std::{
     any::{Any, TypeId},
     cell::{Ref, RefCell, RefMut},
@@ -13,14 +13,15 @@ type ComponentMap = HashMap<TypeId, RefCell<Box<dyn Any>>>;
 pub struct World {
     // has ComponentStorage<T>
     components: ComponentMap,
-    ids: SlotMap<EntityId, ()>,
+    // TODO: test whether SlotMap or HopSlotMap is faster
+    ids: HopSlotMap<EntityId, ()>,
 }
 
 impl World {
     pub fn new() -> Self {
         Self {
             components: HashMap::new(),
-            ids: SlotMap::with_key(),
+            ids: HopSlotMap::with_key(),
         }
     }
 
