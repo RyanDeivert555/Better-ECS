@@ -41,7 +41,7 @@ mod tests {
         assert_eq!(20, *world.get_component::<i32>(e2).unwrap());
         assert_eq!(None, world.get_component::<Position>(e2).as_deref());
 
-        world.remove_component::<i32>(e1);
+        assert_eq!(Some(50), world.remove_component::<i32>(e1));
         assert_eq!(None, world.get_component::<i32>(e1).as_deref());
 
         world.remove_entity(e1);
@@ -164,6 +164,7 @@ mod tests {
         let mut world = World::new();
 
         assert_eq!(None, world.add_resource(0));
+        assert_eq!(Some(0), world.add_resource(0));
 
         {
             let mut counter = world.get_resource_mut::<i32>().unwrap();

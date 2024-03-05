@@ -96,13 +96,14 @@ impl World {
             && self.ids.contains_key(key)
     }
 
-    pub fn add_component<T>(&mut self, key: EntityId, entry: T)
+    pub fn add_component<T>(&mut self, key: EntityId, entry: T) -> Option<T>
     where
         T: Component + 'static,
     {
         assert!(self.contains_storage::<T>(), "Component is not registered");
         let mut storage = self.storage_mut::<T>().unwrap();
-        storage.insert(key, entry);
+
+        storage.insert(key, entry)
     }
 
     pub fn add_resource<T>(&mut self, entry: T) -> Option<T>
@@ -115,18 +116,13 @@ impl World {
         previous_value.map(|inner| *inner.into_inner().downcast::<T>().unwrap())
     }
 
-    pub fn remove_component<T>(&mut self, key: EntityId)
+    pub fn remove_component<T>(&mut self, key: EntityId) -> Option<T>
     where
         T: Component + 'static,
     {
-        assert!(self.contains_storage::<T>());
-        {
-            let mut storage = self.storage_mut::<T>().unwrap();
-            storage.remove(key);
-        }
-        let id = TypeId::of::<ComponentStorage<T>>();
+        let mut storage = self.storage_mut::<T>()?;
 
-        self.components.remove(&id);
+        storage.remove(key)
     }
 
     pub fn get_resource<T>(&self) -> Option<Ref<'_, T>>
