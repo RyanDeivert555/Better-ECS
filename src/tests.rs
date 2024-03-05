@@ -1,5 +1,6 @@
-use crate::{make_component, component::Component};
+use crate::{component::Component, make_component};
 
+// shouldnt be done like this, just for testing
 impl Component for i32 {}
 
 make_component! {
