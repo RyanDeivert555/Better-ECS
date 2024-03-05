@@ -5,7 +5,7 @@ pub trait Component {}
 
 #[macro_export]
 macro_rules! make_component {
-    { $(#[$outer:meta])* $vis:vis struct $name:ident $($rest:tt)* } => {
+    ( $(#[$outer:meta])* $vis:vis struct $name:ident $($rest:tt)* ) => {
         $(#[$outer])*
         $vis struct $name $($rest)*
         impl $crate::component::Component for $name {}

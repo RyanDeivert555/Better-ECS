@@ -13,7 +13,7 @@ make_component! {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::Position, world::World};
+    use crate::{make_component, tests::Position, world::World};
 
     #[test]
     fn basic_operations() {
@@ -174,5 +174,41 @@ mod tests {
         assert_eq!(Some(&1), world.get_resource::<i32>().as_deref());
         assert_eq!(Some(1), world.add_resource(10));
         assert_eq!(None, world.get_resource::<Position>().as_deref());
+    }
+
+    #[test]
+    fn rand_test() {
+        let mut world = World::new();
+
+        make_component! {
+            pub struct Player;
+        }
+
+        world.register::<Position>();
+        world.register::<Player>();
+
+        let _ = world
+            .new_entity()
+            .with(Position { x: 0, y: 0 })
+            .with(Player)
+            .build();
+        let _ = (0..10)
+            .map(|_| world.new_entity().build())
+            .collect::<Vec<_>>();
+
+        let positions = world.query_mut::<Position>();
+
+        for mut pos in positions {
+            pos.x += 1;
+        }
+
+        {
+            let (_, mut pos) = world.query_mut::<(Player, Position)>().next().unwrap();
+            pos.x += 1;
+        }
+
+        let (_, pos) = world.query::<(Player, Position)>().next().unwrap();
+
+        assert_eq!(*pos, Position { x: 2, y: 0 });
     }
 }
