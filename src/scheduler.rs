@@ -1,10 +1,12 @@
 #![allow(unused)]
 use crate::world::World;
 
+type BoxedVec<T> = Vec<Box<T>>;
+
 #[derive(Default)]
 pub struct Scheduler {
-    startup_systems: Vec<Box<dyn Fn(&mut World) -> bool>>,
-    systems: Vec<Box<dyn Fn(&mut World) -> bool>>,
+    startup_systems: BoxedVec<dyn Fn(&mut World) -> bool>,
+    systems: BoxedVec<dyn Fn(&mut World) -> bool>,
 }
 
 impl Scheduler {
