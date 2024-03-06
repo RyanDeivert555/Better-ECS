@@ -2,7 +2,6 @@
 use crate::{
     world::World,
     scheduler::Scheduler,
-    system::{StartUpSystem, System},
 };
 
 pub struct App {
@@ -20,13 +19,19 @@ impl App {
         }
     }
 
-    pub fn add_startup_system(&mut self, startup_system: impl StartUpSystem + 'static) -> &mut Self {
+    pub fn add_startup_system<F>(&mut self, startup_system: F) -> &mut Self
+    where
+        F: Fn(&mut World) -> bool + 'static,
+    {
         self.scheduler.add_startup_system(startup_system);
 
         self
     }
 
-    pub fn add_system(&mut self, system: impl System + 'static) -> &mut Self {
+    pub fn add_system<F>(&mut self, system: F) -> &mut Self
+    where
+        F: Fn(&mut World) -> bool + 'static,
+    {
         self.scheduler.add_system(system);
 
         self

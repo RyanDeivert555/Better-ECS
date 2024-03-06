@@ -1,10 +1,8 @@
 use std::cell::{Ref, RefMut};
-
 use crate::{
     component::{Component, EntityId},
     world::World,
 };
-
 
 // TODO: add QueryWithoutTrait
 pub trait Query {
