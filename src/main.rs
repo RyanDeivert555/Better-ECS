@@ -15,7 +15,7 @@ make_component! {
 
 struct AddCounter;
 impl StartUpSystem for AddCounter {
-    fn run(&mut self, world: &mut World) -> bool {
+    fn run(&self, world: &mut World) -> bool {
         world.add_resource(Counter(0));
 
         true
@@ -24,7 +24,7 @@ impl StartUpSystem for AddCounter {
 
 struct DisplayCount;
 impl System for DisplayCount {
-    fn run(&mut self, world: &mut World) -> bool {
+    fn run(&self, world: &mut World) -> bool {
         let counter = world.get_resource::<Counter>().unwrap();
         println!("Counter: {}", counter.0);
 
@@ -34,7 +34,7 @@ impl System for DisplayCount {
 
 struct IncCounter;
 impl System for IncCounter {
-    fn run(&mut self, world: &mut World) -> bool {
+    fn run(&self, world: &mut World) -> bool {
         let mut counter = world.get_resource_mut::<Counter>().unwrap();
         counter.0 += 1;
 
