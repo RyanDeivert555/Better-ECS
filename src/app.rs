@@ -1,8 +1,5 @@
 #![allow(unused)]
-use crate::{
-    world::World,
-    scheduler::Scheduler,
-};
+use crate::{scheduler::Scheduler, world::World};
 
 pub struct App {
     world: World,

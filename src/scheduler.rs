@@ -14,7 +14,7 @@ impl Scheduler {
         Self::default()
     }
 
-    pub fn add_startup_system<F>(&mut self, startup_system: F) 
+    pub fn add_startup_system<F>(&mut self, startup_system: F)
     where
         F: Fn(&mut World) -> bool + 'static,
     {
