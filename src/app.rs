@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::{scheduler::Scheduler, world::World};
+use crate::{scheduler::{WorldFn, Scheduler}, world::World};
 
 pub struct App {
     world: World,
@@ -16,19 +16,13 @@ impl App {
         }
     }
 
-    pub fn add_startup_system<F>(&mut self, startup_system: F) -> &mut Self
-    where
-        F: Fn(&mut World) -> bool + 'static,
-    {
+    pub fn add_startup_system(&mut self, startup_system: WorldFn) -> &mut Self {
         self.scheduler.add_startup_system(startup_system);
 
         self
     }
 
-    pub fn add_system<F>(&mut self, system: F) -> &mut Self
-    where
-        F: Fn(&mut World) -> bool + 'static,
-    {
+    pub fn add_system(&mut self, system: WorldFn) -> &mut Self {
         self.scheduler.add_system(system);
 
         self

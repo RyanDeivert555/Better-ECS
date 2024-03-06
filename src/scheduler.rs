@@ -1,12 +1,13 @@
 #![allow(unused)]
 use crate::world::World;
 
-type BoxedVec<T> = Vec<Box<T>>;
+pub type WorldFn = fn (&mut World) -> bool;
 
 #[derive(Default)]
 pub struct Scheduler {
-    startup_systems: BoxedVec<dyn Fn(&mut World) -> bool>,
-    systems: BoxedVec<dyn Fn(&mut World) -> bool>,
+    startup_systems: Vec<WorldFn>,
+    // TODO: perf test to see if this is better than Fn trait
+    systems: Vec<WorldFn>,
 }
 
 impl Scheduler {
@@ -14,18 +15,12 @@ impl Scheduler {
         Self::default()
     }
 
-    pub fn add_startup_system<F>(&mut self, startup_system: F)
-    where
-        F: Fn(&mut World) -> bool + 'static,
-    {
-        self.startup_systems.push(Box::new(startup_system));
+    pub fn add_startup_system(&mut self, startup_system: WorldFn) {
+        self.startup_systems.push(startup_system);
     }
 
-    pub fn add_system<F>(&mut self, system: F)
-    where
-        F: Fn(&mut World) -> bool + 'static,
-    {
-        self.systems.push(Box::new(system));
+    pub fn add_system(&mut self, system: WorldFn) {
+        self.systems.push(system);
     }
 
     pub fn run_startup_systems(&mut self, world: &mut World) -> bool {
