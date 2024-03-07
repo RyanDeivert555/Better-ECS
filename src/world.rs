@@ -100,7 +100,7 @@ impl World {
     where
         T: Component + 'static,
     {
-        assert!(self.contains_storage::<T>(), "Component is not registered");
+        assert!(self.contains_storage::<T>(), "Component {} is not registered", std::any::type_name::<T>());
         let mut storage = self.storage_mut::<T>().unwrap();
 
         storage.insert(key, entry)
