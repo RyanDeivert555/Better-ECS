@@ -1,6 +1,7 @@
 #![allow(unused)]
 use crate::{scheduler::{WorldFn, Scheduler}, world::World};
 
+#[derive(Default)]
 pub struct App {
     world: World,
     scheduler: Scheduler,

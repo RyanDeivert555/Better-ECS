@@ -1,5 +1,6 @@
 #![allow(unused)]
 use slotmap::{new_key_type, SecondaryMap};
+use std::cell::{RefCell, Ref, RefMut};
 
 pub trait Component {}
 
@@ -22,7 +23,7 @@ pub struct ComponentStorage<T>
 where
     T: Component + 'static,
 {
-    components: SecondaryMap<EntityId, T>,
+    components: SecondaryMap<EntityId, RefCell<T>>,
 }
 
 impl<T> ComponentStorage<T>
@@ -36,22 +37,22 @@ where
     }
 
     pub fn insert(&mut self, key: EntityId, entry: T) -> Option<T> {
-        self.components.insert(key, entry)
+        self.components.insert(key, RefCell::new(entry)).map(|inner| inner.into_inner())
     }
 
     pub fn remove(&mut self, key: EntityId) -> Option<T> {
-        self.components.remove(key)
+        self.components.remove(key).map(|inner| inner.into_inner())
     }
 
     pub fn contains(&self, key: EntityId) -> bool {
         self.components.contains_key(key)
     }
 
-    pub fn get(&self, key: EntityId) -> Option<&T> {
-        self.components.get(key)
+    pub fn get(&self, key: EntityId) -> Option<Ref<'_, T>> {
+        self.components.get(key).map(|inner| inner.borrow())
     }
 
-    pub fn get_mut(&mut self, key: EntityId) -> Option<&mut T> {
-        self.components.get_mut(key)
+    pub fn get_mut(&self, key: EntityId) -> Option<RefMut<'_, T>> {
+        self.components.get(key).map(|inner| inner.borrow_mut())
     }
 }

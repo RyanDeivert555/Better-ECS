@@ -8,13 +8,15 @@ use std::{
     collections::HashMap,
 };
 
-type ComponentMap = HashMap<TypeId, RefCell<Box<dyn Any>>>;
+type ComponentMap = HashMap<TypeId, Box<dyn Any>>;
+type ResourceMap = HashMap<TypeId, RefCell<Box<dyn Any>>>;
 
+#[derive(Default)]
 pub struct World {
     // has ComponentStorage<T>
     components: ComponentMap,
     // has resources T
-    resources: ComponentMap,
+    resources: ResourceMap,
     // TODO: test whether SlotMap or HopSlotMap is faster
     ids: HopSlotMap<EntityId, ()>,
 }
@@ -51,7 +53,7 @@ impl World {
         let id = TypeId::of::<ComponentStorage<T>>();
 
         self.components
-            .insert(id, RefCell::new(Box::new(ComponentStorage::<T>::new())));
+            .insert(id, Box::new(ComponentStorage::<T>::new()));
     }
 
     pub fn contains_storage<T>(&self) -> bool
@@ -63,27 +65,22 @@ impl World {
         self.components.contains_key(&id)
     }
 
-    pub fn storage<T>(&self) -> Option<Ref<'_, ComponentStorage<T>>>
+    fn storage<T>(&self) -> Option<&ComponentStorage<T>>
     where
         T: Component + 'static,
     {
         let id = TypeId::of::<ComponentStorage<T>>();
 
-        Some(Ref::map(self.components.get(&id)?.borrow(), |inner| {
-            inner.downcast_ref::<ComponentStorage<T>>().unwrap()
-        }))
+        self.components.get(&id)?.downcast_ref::<ComponentStorage<T>>()
     }
 
-    pub fn storage_mut<T>(&self) -> Option<RefMut<'_, ComponentStorage<T>>>
+    fn storage_mut<T>(&mut self) -> Option<&mut ComponentStorage<T>>
     where
         T: Component + 'static,
     {
         let id = TypeId::of::<ComponentStorage<T>>();
 
-        Some(RefMut::map(
-            self.components.get(&id)?.borrow_mut(),
-            |inner| inner.downcast_mut::<ComponentStorage<T>>().unwrap(),
-        ))
+        self.components.get_mut(&id)?.downcast_mut::<ComponentStorage<T>>()
     }
 
     pub fn contains_component<T>(&self, key: EntityId) -> bool
@@ -101,7 +98,7 @@ impl World {
         T: Component + 'static,
     {
         assert!(self.contains_storage::<T>(), "Component {} is not registered", std::any::type_name::<T>());
-        let mut storage = self.storage_mut::<T>().unwrap();
+        let storage = self.storage_mut::<T>().unwrap();
 
         storage.insert(key, entry)
     }
@@ -152,8 +149,10 @@ impl World {
     where
         T: Component + 'static,
     {
+        let storage = self.storage::<T>()?;
+    
         if self.contains_component::<T>(key) {
-            Ref::filter_map(self.storage::<T>()?, |inner| inner.get(key)).ok()
+            storage.get(key)
         } else {
             None
         }
@@ -163,8 +162,10 @@ impl World {
     where
         T: Component + 'static,
     {
+        let storage = self.storage::<T>()?;
+
         if self.contains_component::<T>(key) {
-            RefMut::filter_map(self.storage_mut::<T>()?, |inner| inner.get_mut(key)).ok()
+            storage.get_mut(key)
         } else {
             None
         }
