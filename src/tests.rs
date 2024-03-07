@@ -2,6 +2,7 @@ use crate::{component::Component, make_component};
 
 // shouldnt be done like this, just for testing
 impl Component for i32 {}
+impl Component for f32 {}
 
 make_component! {
     #[derive(Debug, PartialEq)]
@@ -121,12 +122,19 @@ mod tests {
         let mut world = World::new();
 
         world.register::<i32>();
+        world.register::<f32>();
         world.register::<Position>();
 
         for i in 0..50 {
             let _ = world
                 .new_entity()
                 .with(i)
+                .with(Position { x: i, y: i })
+                .build();
+
+            let _ = world
+                .new_entity()
+                .with(i as f32)
                 .with(Position { x: i, y: i })
                 .build();
         }
@@ -157,6 +165,12 @@ mod tests {
             assert_eq!(i as i32, *num);
             assert_eq!(expected_pos, *pos);
         }
+
+        let q1 = world.query::<(i32, Position)>();
+        let q2 = world.query_mut::<(f32, Position)>();
+
+        // testing borrow mut of the storages
+        for _ in std::iter::zip(q1, q2) {}
     }
 
     #[test]
