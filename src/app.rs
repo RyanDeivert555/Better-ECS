@@ -5,7 +5,6 @@ use crate::{scheduler::{WorldFn, Scheduler}, world::World};
 pub struct App {
     world: World,
     scheduler: Scheduler,
-    run: bool,
 }
 
 impl App {
@@ -13,7 +12,6 @@ impl App {
         Self {
             world: World::new(),
             scheduler: Scheduler::new(),
-            run: true,
         }
     }
 
@@ -30,10 +28,10 @@ impl App {
     }
 
     pub fn run(&mut self) {
-        self.run = self.scheduler.run_startup_systems(&mut self.world);
+        self.scheduler.run_startup_systems(&mut self.world);
 
-        while self.run {
-            self.run = self.scheduler.run_systems(&mut self.world);
+        while self.world.active() {
+            self.scheduler.run_systems(&mut self.world);
         }
     }
 }

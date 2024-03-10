@@ -1,7 +1,7 @@
 #![allow(unused)]
 use crate::world::World;
 
-pub type WorldFn = fn (&mut World) -> bool;
+pub type WorldFn = fn (&mut World);
 
 #[derive(Default)]
 pub struct Scheduler {
@@ -23,23 +23,15 @@ impl Scheduler {
         self.systems.push(system);
     }
 
-    pub fn run_startup_systems(&mut self, world: &mut World) -> bool {
+    pub fn run_startup_systems(&mut self, world: &mut World) {
         for system in self.startup_systems.iter_mut() {
-            if !system(world) {
-                return false;
-            }
+            system(world);
         }
-
-        true
     }
 
-    pub fn run_systems(&mut self, world: &mut World) -> bool {
+    pub fn run_systems(&mut self, world: &mut World) {
         for system in self.systems.iter_mut() {
-            if !system(world) {
-                return false;
-            }
+            system(world);
         }
-
-        true
     }
 }

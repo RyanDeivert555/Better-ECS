@@ -19,6 +19,7 @@ pub struct World {
     resources: ResourceMap,
     // TODO: test whether SlotMap or HopSlotMap is faster
     ids: HopSlotMap<EntityId, ()>,
+    active: bool,
 }
 
 impl World {
@@ -27,6 +28,7 @@ impl World {
             components: HashMap::new(),
             resources: HashMap::new(),
             ids: HopSlotMap::with_key(),
+            active: true,
         }
     }
 
@@ -201,5 +203,13 @@ impl World {
         self.ids
             .keys()
             .filter_map(|key| self.get_components_mut::<Q>(key))
+    }
+
+    pub fn active(&self) -> bool {
+        self.active
+    }
+
+    pub fn shutdown(&mut self) {
+        self.active = false;
     }
 }
