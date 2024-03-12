@@ -73,7 +73,9 @@ impl World {
     {
         let id = TypeId::of::<ComponentStorage<T>>();
 
-        self.components.get(&id)?.downcast_ref::<ComponentStorage<T>>()
+        self.components
+            .get(&id)?
+            .downcast_ref::<ComponentStorage<T>>()
     }
 
     fn storage_mut<T>(&mut self) -> Option<&mut ComponentStorage<T>>
@@ -82,7 +84,9 @@ impl World {
     {
         let id = TypeId::of::<ComponentStorage<T>>();
 
-        self.components.get_mut(&id)?.downcast_mut::<ComponentStorage<T>>()
+        self.components
+            .get_mut(&id)?
+            .downcast_mut::<ComponentStorage<T>>()
     }
 
     pub fn contains_component<T>(&self, key: EntityId) -> bool
@@ -99,7 +103,11 @@ impl World {
     where
         T: Component + 'static,
     {
-        assert!(self.contains_storage::<T>(), "Component {} is not registered", std::any::type_name::<T>());
+        assert!(
+            self.contains_storage::<T>(),
+            "Component {} is not registered",
+            std::any::type_name::<T>()
+        );
         let storage = self.storage_mut::<T>().unwrap();
 
         storage.insert(key, entry)
@@ -152,7 +160,7 @@ impl World {
         T: Component + 'static,
     {
         let storage = self.storage::<T>()?;
-    
+
         if self.contains_component::<T>(key) {
             storage.get(key)
         } else {

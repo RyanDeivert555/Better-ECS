@@ -1,6 +1,6 @@
 #![allow(unused)]
 use slotmap::{new_key_type, SecondaryMap};
-use std::cell::{RefCell, Ref, RefMut};
+use std::cell::{Ref, RefCell, RefMut};
 
 pub trait Component {}
 
@@ -37,7 +37,9 @@ where
     }
 
     pub fn insert(&mut self, key: EntityId, entry: T) -> Option<T> {
-        self.components.insert(key, RefCell::new(entry)).map(|inner| inner.into_inner())
+        self.components
+            .insert(key, RefCell::new(entry))
+            .map(|inner| inner.into_inner())
     }
 
     pub fn remove(&mut self, key: EntityId) -> Option<T> {

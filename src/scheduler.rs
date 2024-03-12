@@ -1,7 +1,7 @@
 #![allow(unused)]
 use crate::world::World;
 
-pub type WorldFn = fn (&mut World);
+pub type WorldFn = fn(&mut World);
 
 #[derive(Default)]
 pub struct Scheduler {
