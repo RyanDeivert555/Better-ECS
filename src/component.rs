@@ -39,11 +39,11 @@ where
     pub fn insert(&mut self, key: EntityId, entry: T) -> Option<T> {
         self.components
             .insert(key, RefCell::new(entry))
-            .map(|inner| inner.into_inner())
+            .map(RefCell::into_inner)
     }
 
     pub fn remove(&mut self, key: EntityId) -> Option<T> {
-        self.components.remove(key).map(|inner| inner.into_inner())
+        self.components.remove(key).map(RefCell::into_inner)
     }
 
     pub fn contains(&self, key: EntityId) -> bool {

@@ -39,5 +39,5 @@ fn main() {
         .add_startup_system(add_counter)
         .add_system(display_counter)
         .add_system(inc_counter)
-        .run()
+        .run();
 }
