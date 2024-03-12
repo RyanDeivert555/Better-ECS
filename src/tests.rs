@@ -247,6 +247,7 @@ mod tests {
         {
             let ids = world.query::<EntityId>().collect::<Vec<_>>();
             assert!(ids.iter().position(|cell| **cell == e1).is_none());
+            assert_eq!(None, world.get_component::<EntityId>(e1).as_deref());
             assert!(ids.iter().position(|cell| **cell == e2).is_some());
             assert!(ids.iter().position(|cell| **cell == e3).is_some());
         }
