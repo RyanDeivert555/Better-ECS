@@ -24,12 +24,15 @@ pub struct World {
 
 impl World {
     pub fn new() -> Self {
-        Self {
+        let mut instance = Self {
             components: HashMap::new(),
             resources: HashMap::new(),
             ids: HopSlotMap::with_key(),
             active: true,
-        }
+        };
+        instance.register::<EntityId>();
+
+        instance
     }
 
     pub fn new_entity(&mut self) -> EntityBuilder {

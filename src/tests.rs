@@ -14,7 +14,7 @@ make_component! {
 
 #[cfg(test)]
 mod tests {
-    use crate::{make_component, tests::Position, world::World};
+    use crate::{make_component, prelude::EntityId, tests::Position, world::World};
 
     #[test]
     fn basic_operations() {
@@ -224,5 +224,31 @@ mod tests {
         let (_, pos) = world.query::<(Player, Position)>().next().unwrap();
 
         assert_eq!(*pos, Position { x: 2, y: 0 });
+    }
+
+    #[test]
+    fn id_as_component() {
+        let mut world = World::new();
+
+        let e1 = world.new_entity().build();
+        let e2 = world.new_entity().build();
+        let e3 = world.new_entity().build();
+
+        {
+            let ids = world.query::<EntityId>().collect::<Vec<_>>();
+
+            assert!(ids.iter().position(|cell| **cell == e1).is_some());
+            assert!(ids.iter().position(|cell| **cell == e2).is_some());
+            assert!(ids.iter().position(|cell| **cell == e3).is_some());
+        }
+
+        world.remove_entity(e1);
+
+        {
+            let ids = world.query::<EntityId>().collect::<Vec<_>>();
+            assert!(ids.iter().position(|cell| **cell == e1).is_none());
+            assert!(ids.iter().position(|cell| **cell == e2).is_some());
+            assert!(ids.iter().position(|cell| **cell == e3).is_some());
+        }
     }
 }

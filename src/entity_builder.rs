@@ -9,6 +9,8 @@ pub struct EntityBuilder<'a> {
 
 impl<'a> EntityBuilder<'a> {
     pub fn new(id: EntityId, world: &'a mut World) -> Self {
+        world.add_component(id, id);
+
         Self { id, world }
     }
 

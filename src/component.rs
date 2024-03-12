@@ -17,6 +17,8 @@ new_key_type! {
     pub struct EntityId;
 }
 
+impl Component for EntityId {}
+
 // Component store of one type for all entities
 #[derive(Default)]
 pub struct ComponentStorage<T>
