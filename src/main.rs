@@ -22,14 +22,14 @@ fn display_counter(world: &mut World) {
 }
 
 fn inc_counter(world: &mut World) {
-    let counter = {
+    let should_shutdown = {
         let mut counter = world.get_resource_mut::<Counter>().unwrap();
         counter.0 += 1;
 
-        counter.0
+        counter.0 >= 10
     };
 
-    if counter >= 10 {
+    if should_shutdown {
         world.shutdown();
     }
 }

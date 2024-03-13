@@ -1,15 +1,20 @@
 #![allow(unused)]
 use slotmap::{new_key_type, SecondaryMap};
-use std::cell::{Ref, RefCell, RefMut};
+use std::{
+    any::Any,
+    cell::{Ref, RefCell, RefMut},
+};
 
 pub trait Component {}
 
 #[macro_export]
 macro_rules! make_component {
-    ( $(#[$outer:meta])* $vis:vis struct $name:ident $($rest:tt)* ) => {
-        $(#[$outer])*
-        $vis struct $name $($rest)*
-        impl $crate::component::Component for $name {}
+    ( $($(#[$outer:meta])* $vis:vis struct $name:ident $($rest:tt)*),* ) => {
+        $(
+            $(#[$outer])*
+            $vis struct $name $($rest)*
+            impl $crate::component::Component for $name {}
+        )*
     };
 }
 
