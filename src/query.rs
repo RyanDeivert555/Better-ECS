@@ -5,6 +5,7 @@ use crate::{
 use std::cell::{Ref, RefMut};
 
 // TODO: add QueryWithoutTrait
+/// A trait used to represent a collection of types the user wants to query.
 pub trait Query {
     type Output<'lt>;
     type OutputMut<'lt>;
@@ -29,7 +30,6 @@ where
     }
 }
 
-#[macro_export]
 macro_rules! __impl_query {
 	($($generic_type:ident),+) => {
 		impl<$($generic_type),*> $crate::query::Query for ($($generic_type,)*)

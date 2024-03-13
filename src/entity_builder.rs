@@ -7,6 +7,7 @@ pub struct EntityBuilder<'a> {
     world: &'a mut World,
 }
 
+/// An entity builder used to create and configure entities within a `World`.
 impl<'a> EntityBuilder<'a> {
     pub fn new(id: EntityId, world: &'a mut World) -> Self {
         world.add_component(id, id);
@@ -14,6 +15,7 @@ impl<'a> EntityBuilder<'a> {
         Self { id, world }
     }
 
+    /// Adds a component to the entity being built.
     pub fn with<T>(&mut self, entry: T) -> &mut Self
     where
         T: Component + 'static,
@@ -23,6 +25,7 @@ impl<'a> EntityBuilder<'a> {
         self
     }
 
+    /// Returns the new entity's ID and drops the reference to `World`.
     pub fn build(&self) -> EntityId {
         self.id
     }
