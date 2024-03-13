@@ -1,23 +1,21 @@
-use crate::{component::Component, make_component};
-
-// shouldnt be done like this, just for testing
-impl Component for i32 {}
-impl Component for f32 {}
-
-make_component! {
-    #[derive(Debug, PartialEq)]
-    struct Position {
-        x: i32,
-        y: i32,
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::{make_component, prelude::EntityId, tests::Position, world::World};
+    use crate::{make_component, prelude::EntityId, component::Component, world::World};
 
     #[test]
     fn basic_operations() {
+        // shouldnt be done like this, just for testing
+        impl Component for i32 {}
+        impl Component for f32 {}
+
+        make_component! {
+            #[derive(Debug, PartialEq)]
+            struct Position {
+                x: i32,
+                y: i32,
+            }
+        }
+
         let mut world = World::new();
 
         world.register::<i32>();
@@ -51,6 +49,14 @@ mod tests {
 
     #[test]
     fn multi_mut_borrow() {
+        make_component! {
+            #[derive(Debug, PartialEq)]
+            struct Position {
+                x: i32,
+                y: i32,
+            }
+        }
+
         let mut world = World::new();
 
         world.register::<i32>();
@@ -90,6 +96,14 @@ mod tests {
 
     #[test]
     fn queries1() {
+        make_component! {
+            #[derive(Debug, PartialEq)]
+            struct Position {
+                x: i32,
+                y: i32,
+            }
+        }
+
         let mut world = World::new();
 
         world.register::<i32>();
@@ -119,6 +133,14 @@ mod tests {
 
     #[test]
     fn queries2() {
+        make_component! {
+            #[derive(Debug, PartialEq)]
+            struct Position {
+                x: i32,
+                y: i32,
+            }
+        }
+
         let mut world = World::new();
 
         world.register::<i32>();
@@ -175,6 +197,14 @@ mod tests {
 
     #[test]
     fn resources() {
+        make_component! {
+            #[derive(Debug, PartialEq)]
+            struct Position {
+                x: i32,
+                y: i32,
+            }
+        }
+
         let mut world = World::new();
 
         assert_eq!(None, world.add_resource(0));
@@ -192,6 +222,14 @@ mod tests {
 
     #[test]
     fn rand_test() {
+        make_component! {
+            #[derive(Debug, PartialEq)]
+            struct Position {
+                x: i32,
+                y: i32,
+            }
+        }
+
         let mut world = World::new();
 
         make_component! {
