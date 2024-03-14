@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{make_component, prelude::EntityId, component::Component, world::World};
+    use crate::{component::Component, make_component, prelude::EntityId, world::World};
 
     #[test]
     fn basic_operations() {

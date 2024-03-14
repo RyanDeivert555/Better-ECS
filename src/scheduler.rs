@@ -16,12 +16,12 @@ impl Scheduler {
         Self::default()
     }
 
-    /// Adds a startup system to the app. Order of insertion does matter; systems that are added first are run first. 
+    /// Adds a startup system to the app. Order of insertion does matter; systems that are added first are run first.
     pub fn add_startup_system(&mut self, startup_system: WorldFn) {
         self.startup_systems.push(startup_system);
     }
 
-    /// Adds a system to the app. Order of insertion does matter; systems that are added first are run first. 
+    /// Adds a system to the app. Order of insertion does matter; systems that are added first are run first.
     pub fn add_system(&mut self, system: WorldFn) {
         self.systems.push(system);
     }

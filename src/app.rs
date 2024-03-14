@@ -20,14 +20,14 @@ impl App {
         }
     }
 
-    /// Adds a startup system to the app. Order of insertion does matter; systems that are added first are run first. 
+    /// Adds a startup system to the app. Order of insertion does matter; systems that are added first are run first.
     pub fn add_startup_system(&mut self, startup_system: WorldFn) -> &mut Self {
         self.scheduler.add_startup_system(startup_system);
 
         self
     }
 
-    /// Adds a system to the app. Order of insertion does matter; systems that are added first are run first. 
+    /// Adds a system to the app. Order of insertion does matter; systems that are added first are run first.
     pub fn add_system(&mut self, system: WorldFn) -> &mut Self {
         self.scheduler.add_system(system);
 

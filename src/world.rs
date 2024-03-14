@@ -1,6 +1,9 @@
 #![allow(unused)]
 use crate::entity_builder::EntityBuilder;
-use crate::{component::{Component, ComponentStorage, EntityId}, query::Query};
+use crate::{
+    component::{Component, ComponentStorage, EntityId},
+    query::Query,
+};
 use slotmap::HopSlotMap;
 use std::{
     any::{Any, TypeId},

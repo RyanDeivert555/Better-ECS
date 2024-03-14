@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::component::{Component,EntityId};
+use crate::component::{Component, EntityId};
 use crate::world::World;
 
 pub struct EntityBuilder<'a> {
