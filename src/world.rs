@@ -118,7 +118,7 @@ impl World {
     }
 
     /// Adds a component of a specific type to an entity.
-    /// #Panics
+    /// # Panics
     /// Panics if the component `T` has not been registered.
     pub fn add_component<T>(&mut self, key: EntityId, entry: T) -> Option<T>
     where
