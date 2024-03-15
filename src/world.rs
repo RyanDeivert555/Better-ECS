@@ -5,6 +5,7 @@ use crate::{
     query::Query,
 };
 use slotmap::HopSlotMap;
+use std::process::Output;
 use std::{
     any::{Any, TypeId},
     cell::{Ref, RefCell, RefMut},
@@ -237,6 +238,14 @@ impl World {
             .filter_map(|key| self.get_components::<Q>(key))
     }
 
+    /// Executes a query on the world to retrieve components associated a single entity.
+    pub fn query_single<Q>(&self) -> Option<<Q>::Output<'_>>
+    where
+        Q: Query,
+    {
+        self.query::<Q>().next()
+    }
+
     /// Executes a query on the world to retrieve components associated with entities.
     pub fn query_mut<Q>(&self) -> impl Iterator<Item = <Q>::OutputMut<'_>>
     where
@@ -245,6 +254,14 @@ impl World {
         self.ids
             .keys()
             .filter_map(|key| self.get_components_mut::<Q>(key))
+    }
+
+    /// Executes a query on the world to retrieve components associated a single entity.
+    pub fn query_single_mut<Q>(&self) -> Option<<Q>::OutputMut<'_>>
+    where
+        Q: Query,
+    {
+        self.query_mut::<Q>().next()
     }
 
     /// Checks if the `World` is still active.
