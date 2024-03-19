@@ -152,7 +152,7 @@ fn change_color(world: &mut World) {
 
 fn cull_entities(world: &mut World) {
     let query = world.query::<(EntityId, Health)>();
-
+    // this kinda sucks
     let ids = query
         .filter(|(_, health)| health.0 <= 0.0)
         .map(|(id, _)| *id)
