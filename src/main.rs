@@ -10,11 +10,11 @@ use crate::prelude::*;
 // RPG Example
 use raylib::prelude::*;
 
-const TILE_SIZE: i32 = 64;
+const TILE_SIZE: f32 = 64.0;
 const TILE_X_COUNT: i32 = 20;
 const TILE_Y_COUNT: i32 = 15;
-const WIDTH: i32 = TILE_SIZE * TILE_X_COUNT;
-const HEIGHT: i32 = TILE_SIZE * TILE_Y_COUNT;
+const WIDTH: i32 = TILE_SIZE as i32 * TILE_X_COUNT;
+const HEIGHT: i32 = TILE_SIZE as i32 * TILE_Y_COUNT;
 
 make_component! {
     struct Handle(RaylibHandle);
@@ -25,11 +25,15 @@ make_component! {
 }
 
 make_component! {
-    #[derive(Copy, Clone, PartialEq)]
-    struct Position {
-        x: i32,
-        y: i32,
-    }
+    struct Position(Vector2);
+}
+
+make_component! {
+    struct Direction(Vector2);
+}
+
+make_component! {
+    struct Speed(f32);
 }
 
 make_component! {
@@ -44,32 +48,8 @@ make_component! {
     struct Monster;
 }
 
-make_component! {
-    struct MoveTimer(f32);
-}
-
-make_component! {
-    #[derive(PartialEq)]
-    enum Turn {
-        Player,
-        Monster,
-    }
-}
-
 fn rand_bool() -> bool {
     get_random_value::<i32>(0, 1) == 0
-}
-
-fn get_move_result(mover: Position, obstacle: Position, step: Position) -> Position {
-    let mut result = Position { x: 0, y: 0 };
-    result.x = mover.x + step.x;
-    result.y = mover.y + step.y;
-
-    if result != obstacle {
-        result
-    } else {
-        Position { x: 0, y: 0 }
-    }
 }
 
 fn add_raylib(world: &mut World) {
@@ -79,13 +59,14 @@ fn add_raylib(world: &mut World) {
         .build();
     rl.set_target_fps(60);
 
-    world.add_resource(Turn::Player);
     world.add_resource(Handle(rl));
     world.add_resource(Thread(thread));
 }
 
 fn register_components(world: &mut World) {
     world.register::<Position>();
+    world.register::<Direction>();
+    world.register::<Speed>();
     world.register::<Render>();
     world.register::<Player>();
     world.register::<Monster>();
@@ -94,7 +75,9 @@ fn register_components(world: &mut World) {
 fn add_player(world: &mut World) {
     let _player = world
         .new_entity()
-        .with(Position { x: 0, y: 0 })
+        .with(Position(Vector2::zero()))
+        .with(Direction(Vector2::zero()))
+        .with(Speed(200.0))
         .with(Render(Color::BLUE))
         .with(Player)
         .build();
@@ -102,92 +85,62 @@ fn add_player(world: &mut World) {
 
 fn add_monsters(world: &mut World) {
     for _ in 0..10 {
-        let position = Position {
-            x: get_random_value::<i32>(0, TILE_X_COUNT) * TILE_SIZE,
-            y: get_random_value::<i32>(0, TILE_Y_COUNT) * TILE_SIZE,
-        };
+        let position = Position(Vector2::new(
+            get_random_value::<i32>(0, TILE_X_COUNT) as f32 * TILE_SIZE as f32,
+            get_random_value::<i32>(0, TILE_Y_COUNT) as f32 * TILE_SIZE as f32,
+        ));
 
         let _monster = world
             .new_entity()
             .with(position)
+            .with(Direction(Vector2::zero()))
+            .with(Speed(100.0))
             .with(Monster)
             .with(Render(Color::RED))
             .build();
     }
 }
 
-fn move_player(world: &mut World) {
-    let mut turn = world.get_resource_mut::<Turn>().unwrap();
-
-    if *turn == Turn::Monster {
-        return;
-    }
-
-    let (_, mut pos) = world.query_single_mut::<(Player, Position)>().unwrap();
-    let mut monsters = world.query::<(Monster, Position)>();
+fn change_player_velocity(world: &mut World) {
+    let (_, mut dir) = world.query_single_mut::<(Player, Direction)>().unwrap();
     let rl = world.get_resource::<Handle>().unwrap();
 
-    let mut movement = Position { x: 0, y: 0 };
-    if rl.0.is_key_pressed(KeyboardKey::KEY_W) {
-        movement.y -= TILE_SIZE;
+    if rl.0.is_key_down(KeyboardKey::KEY_W) {
+        dir.0.y -= 1.0;
     }
-    if rl.0.is_key_pressed(KeyboardKey::KEY_S) {
-        movement.y += TILE_SIZE;
+    if rl.0.is_key_down(KeyboardKey::KEY_S) {
+        dir.0.y += 1.0;
     }
-    if rl.0.is_key_pressed(KeyboardKey::KEY_A) {
-        movement.x -= TILE_SIZE;
+    if rl.0.is_key_down(KeyboardKey::KEY_A) {
+        dir.0.x -= 1.0;
     }
-    if rl.0.is_key_pressed(KeyboardKey::KEY_D) {
-        movement.x += TILE_SIZE;
+    if rl.0.is_key_down(KeyboardKey::KEY_D) {
+        dir.0.x += 1.0;
     }
-
-    if movement.x == 0 && movement.y == 0 {
-        return;
-    }
-
-    let collide = monsters.any(|(_, m_pos)| {
-        let new_x = pos.x + movement.x;
-        let new_y = pos.y + movement.y;
-
-        let b_x = m_pos.x;
-        let b_y = m_pos.y;
-
-        (new_x == b_x) && (new_y == b_y)
-    });
-
-    if !collide {
-        pos.x += movement.x;
-        pos.y += movement.y;
-    }
-    *turn = Turn::Monster;
 }
 
-fn move_monsters(world: &mut World) {
-    let mut turn = world.get_resource_mut::<Turn>().unwrap();
+fn change_monsters_velocity(world: &mut World) {
+    let monsters = world.query_mut::<(Monster, Direction)>();
 
-    if *turn == Turn::Player {
-        return;
-    }
-
-    let monsters = world.query_mut::<(Monster, Position)>();
-    let (_, player_pos) = world.query_single::<(Player, Position)>().unwrap();
-
-    for (_, mut pos) in monsters {
+    for (_, mut dir) in monsters {
         if rand_bool() {
-            let x = get_random_value::<i32>(-1, 1) * TILE_SIZE;
-            let y = get_random_value::<i32>(-1, 1) * TILE_SIZE;
+            let x = get_random_value::<i32>(-1, 1) as f32;
+            let y = get_random_value::<i32>(-1, 1) as f32;
 
-            // if pos.x + rand_x != player_pos.x {
-            //     pos.x += rand_x;
-            // }
-            // if pos.y + rand_y != player_pos.y {
-            //     pos.y += rand_y;
-            // }
-            *pos = get_move_result(*pos, *player_pos, Position { x, y });
+            dir.0 += Vector2::new(x, y);
         }
     }
+}
 
-    *turn = Turn::Player;
+fn move_system(world: &mut World) {
+    let query = world.query_mut::<(Position, Direction, Speed)>();
+    let rl = world.get_resource::<Handle>().unwrap();
+    let dt = rl.0.get_frame_time();
+
+    for (mut pos, mut dir, speed) in query {
+        pos.0 += dir.0 * speed.0 * dt;
+        dir.0 = Vector2::zero();
+    }
 }
 
 fn draw_system(world: &mut World) {
@@ -198,7 +151,7 @@ fn draw_system(world: &mut World) {
     let mut d = rl.0.begin_drawing(&thread.0);
     d.clear_background(Color::RAYWHITE);
     for (p, render) in query {
-        d.draw_rectangle(p.x, p.y, TILE_SIZE, TILE_SIZE, render.0);
+        d.draw_rectangle_v(p.0, Vector2::new(TILE_SIZE, TILE_SIZE), render.0);
     }
 
     d.draw_fps(0, 0);
@@ -222,8 +175,9 @@ fn main() {
         .add_startup_system(register_components)
         .add_startup_system(add_player)
         .add_startup_system(add_monsters)
-        .add_system(move_player)
-        .add_system(move_monsters)
+        .add_system(change_player_velocity)
+        .add_system(change_monsters_velocity)
+        .add_system(move_system)
         .add_system(draw_system)
         .add_system(close_system)
         .run();
