@@ -93,8 +93,8 @@ fn add_player(world: &mut World) {
 fn add_monsters(world: &mut World) {
     for _ in 0..10 {
         let position = Position(Vector2::new(
-            get_random_value::<i32>(0, TILE_X_COUNT) as f32 * TILE_SIZE as f32,
-            get_random_value::<i32>(0, TILE_Y_COUNT) as f32 * TILE_SIZE as f32,
+            get_random_value::<i32>(0, TILE_X_COUNT) as f32 * TILE_SIZE,
+            get_random_value::<i32>(0, TILE_Y_COUNT) as f32 * TILE_SIZE,
         ));
 
         let _monster = world
@@ -153,7 +153,10 @@ fn change_color(world: &mut World) {
 fn cull_entities(world: &mut World) {
     let query = world.query::<(EntityId, Health)>();
 
-    let ids = query.filter(|(_, health)| health.0 <= 0.0).map(|(id, _)| *id).collect::<Vec<_>>();
+    let ids = query
+        .filter(|(_, health)| health.0 <= 0.0)
+        .map(|(id, _)| *id)
+        .collect::<Vec<_>>();
     ids.into_iter().for_each(|id| world.remove_entity(id));
 }
 
