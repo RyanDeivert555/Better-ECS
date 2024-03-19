@@ -16,6 +16,11 @@ macro_rules! make_component {
         $vis struct $name $($rest)*
         impl $crate::component::Component for $name {}
     };
+    ($(#[$outer:meta])* $vis:vis enum $name:ident $($rest:tt)*) => {
+        $(#[$outer])*
+        $vis enum $name $($rest)*
+        impl $crate::component::Component for $name {}
+    };
 }
 
 new_key_type! {

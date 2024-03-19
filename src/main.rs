@@ -25,6 +25,7 @@ make_component! {
 }
 
 make_component! {
+    #[derive(Copy, Clone, PartialEq)]
     struct Position {
         x: i32,
         y: i32,
@@ -43,15 +44,32 @@ make_component! {
     struct Monster;
 }
 
-#[derive(PartialEq)]
-enum Turn {
-    Player,
-    Monster,
+make_component! {
+    struct MoveTimer(f32);
 }
-impl Component for Turn {} // macro doesnt work for enums!
+
+make_component! {
+    #[derive(PartialEq)]
+    enum Turn {
+        Player,
+        Monster,
+    }
+}
 
 fn rand_bool() -> bool {
     get_random_value::<i32>(0, 1) == 0
+}
+
+fn get_move_result(mover: Position, obstacle: Position, step: Position) -> Position {
+    let mut result = Position { x: 0, y: 0 };
+    result.x = mover.x + step.x;
+    result.y = mover.y + step.y;
+
+    if result != obstacle {
+        result
+    } else {
+        Position { x: 0, y: 0 }
+    }
 }
 
 fn add_raylib(world: &mut World) {
@@ -106,24 +124,42 @@ fn move_player(world: &mut World) {
     }
 
     let (_, mut pos) = world.query_single_mut::<(Player, Position)>().unwrap();
+    let mut monsters = world.query::<(Monster, Position)>();
     let rl = world.get_resource::<Handle>().unwrap();
 
+    let mut movement = Position { x: 0, y: 0 };
     if rl.0.is_key_pressed(KeyboardKey::KEY_W) {
-        *turn = Turn::Monster;
-        pos.y -= TILE_SIZE;
+        movement.y -= TILE_SIZE;
     }
     if rl.0.is_key_pressed(KeyboardKey::KEY_S) {
-        *turn = Turn::Monster;
-        pos.y += TILE_SIZE;
+        movement.y += TILE_SIZE;
     }
     if rl.0.is_key_pressed(KeyboardKey::KEY_A) {
-        *turn = Turn::Monster;
-        pos.x -= TILE_SIZE;
+        movement.x -= TILE_SIZE;
     }
     if rl.0.is_key_pressed(KeyboardKey::KEY_D) {
-        *turn = Turn::Monster;
-        pos.x += TILE_SIZE;
+        movement.x += TILE_SIZE;
     }
+
+    if movement.x == 0 && movement.y == 0 {
+        return;
+    }
+
+    let collide = monsters.any(|(_, m_pos)| {
+        let new_x = pos.x + movement.x;
+        let new_y = pos.y + movement.y;
+
+        let b_x = m_pos.x;
+        let b_y = m_pos.y;
+
+        (new_x == b_x) && (new_y == b_y)
+    });
+
+    if !collide {
+        pos.x += movement.x;
+        pos.y += movement.y;
+    }
+    *turn = Turn::Monster;
 }
 
 fn move_monsters(world: &mut World) {
@@ -138,15 +174,16 @@ fn move_monsters(world: &mut World) {
 
     for (_, mut pos) in monsters {
         if rand_bool() {
-            let rand_x = get_random_value::<i32>(-1, 1) * TILE_SIZE;
-            let rand_y = get_random_value::<i32>(-1, 1) * TILE_SIZE;
+            let x = get_random_value::<i32>(-1, 1) * TILE_SIZE;
+            let y = get_random_value::<i32>(-1, 1) * TILE_SIZE;
 
-            if pos.x + rand_x != player_pos.x {
-                pos.x += rand_x;
-            }
-            if pos.y + rand_y != player_pos.y {
-                pos.y += rand_y;
-            }
+            // if pos.x + rand_x != player_pos.x {
+            //     pos.x += rand_x;
+            // }
+            // if pos.y + rand_y != player_pos.y {
+            //     pos.y += rand_y;
+            // }
+            *pos = get_move_result(*pos, *player_pos, Position { x, y });
         }
     }
 
