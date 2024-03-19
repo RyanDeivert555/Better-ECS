@@ -15,6 +15,7 @@ const TILE_X_COUNT: i32 = 20;
 const TILE_Y_COUNT: i32 = 15;
 const WIDTH: i32 = TILE_SIZE as i32 * TILE_X_COUNT;
 const HEIGHT: i32 = TILE_SIZE as i32 * TILE_Y_COUNT;
+const MAX_HEALTH: f32 = 100.0;
 
 make_component! {
     struct Handle(RaylibHandle);
@@ -48,6 +49,10 @@ make_component! {
     struct Monster;
 }
 
+make_component! {
+    struct Health(f32);
+}
+
 fn rand_bool() -> bool {
     get_random_value::<i32>(0, 1) == 0
 }
@@ -70,6 +75,7 @@ fn register_components(world: &mut World) {
     world.register::<Render>();
     world.register::<Player>();
     world.register::<Monster>();
+    world.register::<Health>();
 }
 
 fn add_player(world: &mut World) {
@@ -80,6 +86,7 @@ fn add_player(world: &mut World) {
         .with(Speed(200.0))
         .with(Render(Color::BLUE))
         .with(Player)
+        .with(Health(MAX_HEALTH))
         .build();
 }
 
@@ -97,6 +104,7 @@ fn add_monsters(world: &mut World) {
             .with(Speed(100.0))
             .with(Monster)
             .with(Render(Color::RED))
+            .with(Health(MAX_HEALTH))
             .build();
     }
 }
@@ -130,6 +138,23 @@ fn change_monsters_velocity(world: &mut World) {
             dir.0 += Vector2::new(x, y);
         }
     }
+}
+
+fn change_color(world: &mut World) {
+    let query = world.query_mut::<(Render, Health)>();
+
+    for (mut render, health) in query {
+        let percent = health.0 / MAX_HEALTH;
+
+        render.0 = render.0.fade(percent);
+    }
+}
+
+fn cull_entities(world: &mut World) {
+    let query = world.query::<(EntityId, Health)>();
+
+    let ids = query.filter(|(_, health)| health.0 <= 0.0).map(|(id, _)| *id).collect::<Vec<_>>();
+    ids.into_iter().for_each(|id| world.remove_entity(id));
 }
 
 fn move_system(world: &mut World) {
@@ -177,6 +202,8 @@ fn main() {
         .add_startup_system(add_monsters)
         .add_system(change_player_velocity)
         .add_system(change_monsters_velocity)
+        .add_system(change_color)
+        .add_system(cull_entities)
         .add_system(move_system)
         .add_system(draw_system)
         .add_system(close_system)
