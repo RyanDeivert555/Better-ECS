@@ -6,6 +6,7 @@ mod query;
 mod scheduler;
 mod tests;
 mod world;
+mod commands;
 use crate::prelude::*;
 // RPG Example
 use raylib::prelude::*;
@@ -152,12 +153,27 @@ fn change_color(world: &mut World) {
 
 fn cull_entities(world: &mut World) {
     let query = world.query::<(EntityId, Health)>();
-    // this kinda sucks
-    let ids = query
-        .filter(|(_, health)| health.0 <= 0.0)
-        .map(|(id, _)| *id)
-        .collect::<Vec<_>>();
-    ids.into_iter().for_each(|id| world.remove_entity(id));
+    let mut commands = world.get_commands();
+
+    for (id, health) in query {
+        if health.0 <= 0.0 {
+            // ids are refs, bad!
+            let id = *id;
+            commands.add_command(move |w| w.remove_entity(id));
+        }
+    }
+}
+
+fn hurt_monsters(world: &mut World) {
+    let rl = world.get_resource_mut::<Handle>().unwrap();
+
+    if rl.0.is_key_pressed(KeyboardKey::KEY_SPACE) {
+        let query = world.query_mut::<(Monster, Health)>();
+
+        for (_, mut health) in query {
+            health.0 -= 50.0;
+        }
+    }
 }
 
 fn move_system(world: &mut World) {
@@ -206,6 +222,7 @@ fn main() {
         .add_system(change_player_velocity)
         .add_system(change_monsters_velocity)
         .add_system(change_color)
+        .add_system(hurt_monsters)
         .add_system(cull_entities)
         .add_system(move_system)
         .add_system(draw_system)

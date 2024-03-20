@@ -34,12 +34,21 @@ impl App {
         self
     }
 
+    fn run_commands(&mut self) {
+        let mut command_queue = {
+            let mut command_queue = self.world.get_commands();
+            std::mem::take(&mut *command_queue) // deref coersion
+        }; //we drop the refmut here, so it can't interfere with the `&mut` borrow we take on the next line
+        command_queue.run_commands(&mut self.world);
+    }
+
     /// Driver of `App`
     pub fn run(&mut self) {
         self.scheduler.run_startup_systems(&mut self.world);
 
         while self.world.active() {
             self.scheduler.run_systems(&mut self.world);
+            self.run_commands();
         }
     }
 }

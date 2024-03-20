@@ -1,11 +1,12 @@
 #![allow(unused)]
-use crate::entity_builder::EntityBuilder;
 use crate::{
+    commands::Commands,
+    entity_builder::EntityBuilder,
     component::{Component, ComponentStorage, EntityId},
     query::Query,
 };
 use slotmap::HopSlotMap;
-use std::process::Output;
+use std::process::{Command, Output};
 use std::{
     any::{Any, TypeId},
     cell::{Ref, RefCell, RefMut},
@@ -38,6 +39,7 @@ impl World {
             active: true,
         };
         instance.register::<EntityId>();
+        instance.add_resource(Commands::default());
 
         instance
     }
@@ -262,6 +264,10 @@ impl World {
         Q: Query,
     {
         self.query_mut::<Q>().next()
+    }
+
+    pub fn get_commands(&self) -> RefMut<'_, Commands> {
+        self.get_resource_mut::<Commands>().unwrap()
     }
 
     /// Checks if the `World` is still active.
